@@ -28,6 +28,7 @@ async function run() {
         const productsCollection = database.collection('products');
         const ordersCollection = database.collection('orders');
         const usersCollection = database.collection('users');
+        const reviewsCollection = database.collection('reviews');
 
         console.log('enter')
 
@@ -60,6 +61,17 @@ async function run() {
             }
         })
 
+        // Delete products by id
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
+
+            if (result.deletedCount === 1) {
+                res.send(result.deletedCount === 1)
+            }
+        })
+
         //Insert Order
         app.post('/orders', async (req, res) => {
             const data = req.body.data;
@@ -68,16 +80,36 @@ async function run() {
                 res.send(result.insertedId)
             }
         })
-
         //Get orders by id
-        app.get('/orders', async (req, res) => {
-            const id = req.query.uid;
+        app.get('/orders/:uid', async (req, res) => {
+            const id = req.params.uid;
             const query = { uid: id };
             const orders = await ordersCollection.find(query).toArray();
 
             if (orders) {
                 res.send(orders)
             }
+        })
+
+        // Get all orders
+        app.get('/orders', async (req, res) => {
+            const orders = await ordersCollection.find({}).toArray();
+            res.send(orders)
+        })
+
+
+
+        //Approved Order
+        app.put('/orders/approved/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const update = {
+                $set: {
+                    status: 'Approved'
+                }
+            }
+            const result = await ordersCollection.updateOne(query, update);
+            res.json(result);
         })
 
         // Delete orders by id
@@ -91,29 +123,21 @@ async function run() {
             }
         })
 
+        //Insert Review
+        app.post('/review', async (req, res) => {
+            const data = req.body.data;
+            const result = await reviewsCollection.insertOne(data);
+            res.send(result.insertedId)
+        })
 
-        // //Get booking by email
-        // app.get('/bookings', async (req, res) => {
-        //     const userId = req.query.userId;
-        //     const date = req.query.date;
-        //     const query = { date: date };
-        //     const result = booking_appointment.find(query);
-        //     const bookings = await result.toArray();
-        //     if (bookings) {
-        //         res.send(bookings)
-        //     }
-        // })
+        // Get Review
+        app.get('/review', async (req, res) => {
+            const reviews = await reviewsCollection.find({}).toArray();
+            res.send(reviews);
+        })
 
-        // // Add User information
-        // app.post('/users', async (req, res) => {
-        //     const data = req.body.data;
-        //     const user = await userCollection.insertOne(data);
-        //     if (user.insertedId) {
-        //         res.send(user.insertedId);
-        //     }
-        // })
 
-        //save user in database
+        //Add or Update Users
         app.put('/users', async (req, res) => {
             const user = req.body.data;
             const query = { email: user.email };
@@ -139,19 +163,17 @@ async function run() {
             res.send(user)
         })
 
-        app.put('/users/:email', async (req, res) => {
-            const email = req.params.email;
-
-            const query = { email: email };
+        //make admin
+        app.put('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
             const update = {
                 $set: {
-                    role: 'Admin'
+                    role: 'admin'
                 }
             }
-            const result = await userCollection.updateOne(query, update);
+            const result = await usersCollection.updateOne(query, update);
             res.json(result);
-
-
         })
     }
     finally {
