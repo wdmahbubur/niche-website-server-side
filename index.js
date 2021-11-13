@@ -30,8 +30,6 @@ async function run() {
         const usersCollection = database.collection('users');
         const reviewsCollection = database.collection('reviews');
 
-        console.log('enter')
-
         //Add new product
         app.post('/products', async (req, res) => {
             const data = req.body.data;
@@ -183,4 +181,4 @@ async function run() {
 run().catch(console.dir)
 
 
-app.listen(port, console.log("Server Running On", port));
+app.listen(port);
